@@ -227,7 +227,7 @@ char **infixToPostfix(char **in, int ilen, int *plen) {
 
   free(s);
   *plen = p;
-  // postf = (char **)realloc(postf, sizeof(char) * p);
+  postf = (char **)realloc(postf, sizeof(char) * p);
   return postf;
 }
 
