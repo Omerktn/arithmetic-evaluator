@@ -1,5 +1,5 @@
 # arithmetic-evaluator
-An arithmetic expression evalution program.
+An arithmetic expression evaluation program.
 
 ![Screenshot](ss.png)
 
