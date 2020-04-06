@@ -14,6 +14,9 @@
 #define ANSI_COLOR_YELLOW "\x1b[01;33m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 
+int evalStatus;
+char statusInfo[256];
+
 typedef struct {
   float item[MAX_STACK];
   int top;
@@ -70,7 +73,7 @@ int peek(STACK *s, float *x) {
 void printStack(STACK *s) {
   int i;
   for (i = 0; i < s->top; i++) {
-    printf("%c, ", (int)s->item[i]);
+    printf("[%c-%d], ", (int)s->item[i], (int)s->item[i]);
   }
   printf("\n");
 }
@@ -155,7 +158,6 @@ int getConstant(char *fname, float *constVal, float formerAns) {
     i++;
   }
 
-  // Not a constant
   return 0;
 }
 
@@ -193,10 +195,8 @@ char **strToArray(char *in, int slen, int *ilen, float formerAns) {
 
         } else {
           // Neither constant nor function
-          printf(ANSI_COLOR_RED);
-          printf("Unknown function or constant: ");
-          printf(ANSI_COLOR_RESET);
-          printf("%s\n", tmp);
+          evalStatus = 2;
+          sprintf(statusInfo, "Unknown function or constant: '%s'", tmp);
         }
 
         t = 0;
@@ -245,10 +245,8 @@ char **strToArray(char *in, int slen, int *ilen, float formerAns) {
 
         } else {
           // Neither constant nor function
-          printf(ANSI_COLOR_RED);
-          printf("Unknown function or constant: ");
-          printf(ANSI_COLOR_RESET);
-          printf("%s\n", tmp);
+          evalStatus = 2;
+          sprintf(statusInfo, "Unknown function or constant: '%s'", tmp);
         }
       } else if (t) {
         tmp[t++] = '\0';
@@ -415,6 +413,8 @@ float perform(char op, float op1, float op2) {
     break;
   default:
     ans = 0;
+    evalStatus = 3;
+    strcpy(statusInfo, "Unknown expression");
     break;
   }
   return ans;
@@ -423,6 +423,7 @@ float perform(char op, float op1, float op2) {
 /* Evaluate the operations, with using stack */
 float evalPostfix(char **postf, int plen) {
   STACK *s = (STACK *)malloc(sizeof(STACK));
+  initStack(s);
   int i;
   float op1, op2;
 
@@ -441,8 +442,7 @@ float evalPostfix(char **postf, int plen) {
 }
 
 /* Handles some minus operator cases, e.g."-4+1" */
-char *preProcess(char *infix) {
-  char *clean = (char *)malloc(sizeof(char) * MAX_CHAR_IN);
+void preProcess(char *infix, char *clean) {
   int i = 0, c = 0;
 
   // Put zero to beginning, if starts with "-"
@@ -462,8 +462,6 @@ char *preProcess(char *infix) {
     i++;
   }
   clean[c] = '\0';
-
-  return clean;
 }
 
 /* Returns 1 if the expression has balanced pharentheses*/
@@ -471,7 +469,7 @@ int validCheck(char *in, int ilen) {
   STACK *s = (STACK *)malloc(sizeof(STACK));
   float ch;
   int i;
-  printf(ANSI_COLOR_RED);
+  initStack(s);
 
   for (i = 0; i < ilen; i++) {
     if (in[i] == '(') {
@@ -481,36 +479,40 @@ int validCheck(char *in, int ilen) {
         if (!isEmpty(s)) {
           pop(s, &ch);
         } else {
-          printf("Syntax Error: Unbalanced Pharentheses\n");
           free(s);
+
+          evalStatus = 1;
+          strcpy(statusInfo, "Syntax Error: Unbalanced Pharentheses\n");
           return 0;
         }
       }
     }
   }
   if (!isEmpty(s)) {
-    printf("Syntax Error: Unbalanced Pharentheses\n");
     free(s);
+
+    evalStatus = 1;
+    strcpy(statusInfo, "Syntax Error: Unbalanced Pharentheses\n");
     return 0;
   }
 
-  printf(ANSI_COLOR_RESET);
   free(s);
   return 1;
 }
 
 /* Evaluates and returns the answer. status will be set to -1 if any error
  * occurs */
-float evalExpression(char *exp, int *status, float formerAns) {
+float evalExpression(char *exp, float formerAns) {
   char **postf, **infix;
   int i, ilen, plen;
   float ans;
-  *status = 1;
+
   // Preprocess
-  strcpy(exp, preProcess(exp));
+  char *clean = (char *)malloc(sizeof(char) * MAX_CHAR_IN);
+  preProcess(exp, clean);
+  strcpy(exp, clean);
   // Validation check
   if (!validCheck(exp, strlen(exp))) {
-    *status = -1;
     return 0;
   }
 
@@ -528,6 +530,8 @@ float evalExpression(char *exp, int *status, float formerAns) {
   }
   printf("\n");*/
   ans = evalPostfix(postf, plen);
+
+  free(clean);
   deleteExpression(infix, ilen);
   deleteExpression(postf, plen);
   return ans;
@@ -541,14 +545,14 @@ int main() {
   printf("[Arithmetic Expression Evaluation]\n<Type 'q' to quit.>\n");
 
   do {
+    evalStatus = 0;
     printf(ANSI_COLOR_RESET);
     printf("E:");
     fgets(in, MAX_CHAR_IN, stdin);
     in[strlen(in) - 1] = '\0';
+    ans = evalExpression(in, formerAns);
 
-    ans = evalExpression(in, &status, formerAns);
-
-    if (status > 0) {
+    if (!evalStatus) {
       printf("Ans:>");
       printf(ANSI_COLOR_YELLOW);
 
@@ -558,7 +562,13 @@ int main() {
         printf("%f\n", ans);
       }
       formerAns = ans;
+
+    } else {
+      printf(ANSI_COLOR_RED);
+      printf("%s\n", statusInfo);
+      printf(ANSI_COLOR_RESET);
     }
+
   } while (in[0] != 'q');
 
   return 0;
