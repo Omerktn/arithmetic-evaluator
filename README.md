@@ -1,7 +1,15 @@
 # arithmetic-evaluator
 An arithmetic expression evaluation program.
 
-![Screenshot](ss.png)<br/>
+![Screenshot](ss.png)
+<br/>
+
+Operations:
+| Symbol                              | Description                        |
+|-------------------------------------|------------------------------------|
+| * / + -            | Basic arithmetic operations      |
+| ^ | Power |
+<br/>
 
 Functions:
 | Syntax                              | Description                        |
