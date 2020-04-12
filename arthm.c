@@ -14,8 +14,11 @@
 #define ANSI_COLOR_YELLOW "\x1b[01;33m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 
+#define _DEBUG 0
+
 int evalStatus;
 char statusInfo[256];
+float formerAns = 0;
 
 typedef struct {
   float item[MAX_STACK];
@@ -131,11 +134,12 @@ void deleteExpression(char **strlist, int len) {
 
 /* Return math function number, returns -1 if no function name matched */
 int getFunctionNum(char *fname) {
-  char *funcNames[8] = {"sin",    "cos",    "tan",    "cot",
-                        "arctan", "arcsin", "arccos", "sqrt"};
+  char *funcNames[13] = {"sin",    "cos",    "tan",    "cot",
+                        "arctan", "arcsin", "arccos", "sqrt",
+                         "floor", "round", "ceil", "log", "ln"};
   int i = 0;
   // Check for functions
-  while (i < 8) {
+  while (i < 13) {
     if (!strcasecmp(fname, funcNames[i])) {
       return i;
     }
@@ -145,7 +149,7 @@ int getFunctionNum(char *fname) {
   return -1;
 }
 
-int getConstant(char *fname, float *constVal, float formerAns) {
+int getConstant(char *fname, float *constVal) {
   char *constNames[3] = {"pi", "e", "m"};
   float constVals[3] = {PI_CONST, EU_CONST, formerAns};
   int i = 0;
@@ -163,7 +167,7 @@ int getConstant(char *fname, float *constVal, float formerAns) {
 
 /* Takes a string, returns an array of strings,
  * e.g. "260+(4)" -> {"260","+","(","4",")"} */
-char **strToArray(char *in, int slen, int *ilen, float formerAns) {
+char **strToArray(char *in, int slen, int *ilen) {
   char **str = (char **)malloc(sizeof(char *) * slen * 2);
   char tmp[MAX_CHAR_IN];
   float constVal;
@@ -188,7 +192,7 @@ char **strToArray(char *in, int slen, int *ilen, float formerAns) {
           str[arrIndex] = (char *)malloc(sizeof(char) * (t + 16));
           strcpy(str[arrIndex++], "|");
 
-        } else if (getConstant(tmp, &constVal, formerAns)) {
+        } else if (getConstant(tmp, &constVal)) {
           // Operand is a constant
           sprintf(tmp, "%f", constVal);
           strcpy(str[arrIndex++], tmp);
@@ -238,7 +242,7 @@ char **strToArray(char *in, int slen, int *ilen, float formerAns) {
           str[arrIndex] = (char *)malloc(sizeof(char) * (t + 16));
           strcpy(str[arrIndex++], "|");
 
-        } else if (getConstant(tmp, &constVal, formerAns)) {
+        } else if (getConstant(tmp, &constVal)) {
           // Operand is a constant
           sprintf(tmp, "%f", constVal);
           strcpy(str[arrIndex++], tmp);
@@ -276,7 +280,7 @@ char **strToArray(char *in, int slen, int *ilen, float formerAns) {
       str[arrIndex] = (char *)malloc(sizeof(char) * (t + 16));
       strcpy(str[arrIndex++], "|");
 
-    } else if (getConstant(tmp, &constVal, formerAns)) {
+    } else if (getConstant(tmp, &constVal)) {
       // Operand is a constant
       sprintf(tmp, "%f", constVal);
       strcpy(str[arrIndex++], tmp);
@@ -303,7 +307,7 @@ char **infixToPostfix(char **in, int ilen, int *plen) {
   for (i = 0; i < ilen; i++) {
     strcpy(op, in[i]);
 
-    if (isdigit(op[0])) {
+    if (isdigit(op[0]) || op[0] == '-') {
       // A digit
       postf[p] = (char *)malloc(sizeof(char) * strlen(op));
       strcpy(postf[p++], op);
@@ -340,6 +344,7 @@ char **infixToPostfix(char **in, int ilen, int *plen) {
     postf[p++][1] = '\0';
   }
 
+
   free(s);
   *plen = p;
   return postf;
@@ -350,36 +355,49 @@ float mathFunction(int func_num, float input) {
 
   switch (func_num) {
   case 0:
-    // Sinus
+    // 0:Sin 1:Cos 2:Tan 3:Cos
     ans = sin(input);
     break;
   case 1:
-    // Cosinus
     ans = cos(input);
     break;
   case 2:
-    // Tangent
     ans = tan(input);
     break;
   case 3:
-    // Cotangent
     ans = cos(input) / sin(input);
     break;
   case 4:
-    // Arc-tangent
+    // 4:Arc-tangent, 5:Arc-sinus, 6:Arc-cosinus
     ans = atan(input);
     break;
   case 5:
-    // Arc-sinus
     ans = asin(input);
     break;
   case 6:
-    // Arc-cosinus
     ans = acos(input);
     break;
   case 7:
     // Square root
     ans = sqrt(input);
+    break;
+  case 8:
+    // 8: Floor, 9: Round, 10: Ceil
+    ans = floor(input);
+    break;
+  case 9:
+    ans = round(input);
+    break;
+  case 10:
+    ans = ceil(input);
+    break;
+  case 11:
+    // log base 10
+    ans = log10(input);
+    break;
+  case 12:
+    // ln
+    ans = log(input);
     break;
   default:
     ans = 0;
@@ -428,7 +446,7 @@ float evalPostfix(char **postf, int plen) {
   float op1, op2;
 
   for (i = 0; i < plen; i++) {
-    if (isdigit(postf[i][0])) {
+    if (isdigit(postf[i][0]) || postf[i][0] == '-') {
       push(s, atof(postf[i]));
     } else {
       pop(s, &op2);
@@ -502,9 +520,9 @@ int validCheck(char *in, int ilen) {
 
 /* Evaluates and returns the answer. status will be set to -1 if any error
  * occurs */
-float evalExpression(char *exp, float formerAns) {
+float evalExpression(char *exp) {
   char **postf, **infix;
-  int i, ilen, plen;
+  int ilen, plen;
   float ans;
 
   // Preprocess
@@ -516,19 +534,27 @@ float evalExpression(char *exp, float formerAns) {
     return 0;
   }
 
-  infix = strToArray(exp, strlen(exp), &ilen, formerAns);
-  /*for (i = 0; i < ilen; i++) {
-    printf("%s, ", infix[i]);
+  infix = strToArray(exp, strlen(exp), &ilen);
+  /* DEBUG */
+  if (_DEBUG) {
+    int k;
+    printf("Infix:: ");
+    for (k = 0; k < ilen; k++) {
+      printf("[%s] ", infix[k]);
+    }
+    printf("\n");
   }
-  printf("\n");*/
 
   postf = infixToPostfix(infix, ilen, &plen);
-  /*
-  for (i=0; i<plen; i++) {
-    printf("len:%d :: ", (int)strlen(postf[i]));
-    printf("%s, \n", postf[i]);
+  /* DEBUG */
+  if (_DEBUG) {
+    int k;
+    printf("Postfix:: ");
+    for (k = 0; k < plen; k++) {
+      printf("[%s] ", postf[k]);
+    }
+    printf("\n");
   }
-  printf("\n");*/
   ans = evalPostfix(postf, plen);
 
   free(clean);
@@ -540,7 +566,7 @@ float evalExpression(char *exp, float formerAns) {
 int main() {
   char in[MAX_CHAR_IN];
   int status;
-  float ans, formerAns = 0;
+  float ans;
   printf(ANSI_COLOR_RESET);
   printf("[Arithmetic Expression Evaluation]\n<Type 'q' to quit.>\n");
 
@@ -550,7 +576,7 @@ int main() {
     printf("E:");
     fgets(in, MAX_CHAR_IN, stdin);
     in[strlen(in) - 1] = '\0';
-    ans = evalExpression(in, formerAns);
+    ans = evalExpression(in);
 
     if (!evalStatus) {
       printf("Ans:>");
