@@ -17,6 +17,8 @@ Functions:
 | sin() cos() tan() cot()             | Core trigonometric functions       |
 | arcsin() arccos() arctan() arccot() | Inverse of trigonometric functions |
 | sqrt()                              | Square root                        |
+| floor() round() ceil()              | Standart floor, round, ceil functions|
+| log() ln()                          | log_10 and log_e (natural log.) functions|
 <br/>
 
 Constants:
@@ -26,8 +28,5 @@ Constants:
 | pi | pi number |
 | m                              | (memory) former answer                        |
 <br/>
-To compile and run:
-
-    gcc arthm.c -o eval -lm
     
 
