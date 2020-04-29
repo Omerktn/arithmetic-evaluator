@@ -574,7 +574,9 @@ int main() {
     evalStatus = 0;
     printf(ANSI_COLOR_RESET);
     printf("E:");
-    fgets(in, MAX_CHAR_IN, stdin);
+    if(!fgets(in, MAX_CHAR_IN, stdin)) {
+      exit(5);
+    }
     in[strlen(in) - 1] = '\0';
     ans = evalExpression(in);
 
@@ -585,6 +587,7 @@ int main() {
       if (floor(ans) == (ans)) {
         printf("%d\n", (int)ans);
       } else {
+
         printf("%f\n", ans);
       }
       formerAns = ans;
