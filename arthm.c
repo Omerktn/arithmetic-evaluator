@@ -14,7 +14,7 @@
 #define ANSI_COLOR_YELLOW "\x1b[01;33m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 
-#define _DEBUG 0
+#define _DEBUG 1
 
 int evalStatus;
 char statusInfo[256];
