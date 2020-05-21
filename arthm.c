@@ -5,6 +5,8 @@
 #include <string.h>
 #include <strings.h>
 
+#include "arthm.h"
+
 #define MAX_STACK 2056
 #define MAX_CHAR_IN 4096
 #define PI_CONST 3.14159265358979323846
@@ -566,6 +568,7 @@ long double evalExpression(char *exp) {
   return ans;
 }
 
+#ifdef STANDALONE
 int main() {
   char in[MAX_CHAR_IN];
   int status;
@@ -581,14 +584,15 @@ int main() {
       exit(5);
     }
     in[strlen(in) - 1] = '\0';
+
     ans = evalExpression(in);
 
     if (!evalStatus) {
       printf("Ans:>");
       printf(ANSI_COLOR_YELLOW);
 
-      if (floor(ans) == (ans)) {
-        printf("%d\n", (int)ans);
+      if (floor((double)ans) == (ans)) {
+        printf("%ld\n", (long signed int)ans);
       } else {
 
         printf("%Lf\n", ans);
@@ -601,7 +605,8 @@ int main() {
       printf(ANSI_COLOR_RESET);
     }
 
-  } while (in[0] != 'q');
+  } while (strcmp(in, "q"));
 
   return 0;
 }
+#endif
