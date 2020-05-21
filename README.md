@@ -1,3 +1,4 @@
+
 # arithmetic-evaluator
 An arithmetic expression evaluation program.
 
@@ -28,5 +29,14 @@ Constants:
 | pi | pi number |
 | m                              | (memory) former answer                        |
 <br/>
+
+Run standalone:
+
+	$ make
+	$ ./eval
+Run tests:
+
+	$ make test
+	$ ./test
 
 Floating point rounding error: 1 in a 10^9
