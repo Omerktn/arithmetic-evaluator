@@ -6,6 +6,9 @@
 #include "../arthm.h"
 
 #define EPSILON 0.000001
+#define ANSI_COLOR_RED "\x1b[31m"
+#define ANSI_COLOR_GREEN "\x1b[0;32m"
+#define ANSI_COLOR_RESET "\x1b[0m"
 
 typedef struct TestCase {
   char* title;
@@ -47,7 +50,10 @@ void startTesting(TestCase *tcase) {
     out = evalExpression(tcase->input[i]);
 
     if (!nearlyEqual(out,tcase->target[i])) {
-      printf("Failed at %s\Expression : [%s]\nExpected : %Lf\nGot : %Lf\n",
+      printf(ANSI_COLOR_RED);
+      printf("Failed at ");
+      printf(ANSI_COLOR_RESET);
+      printf("%s\nExpression : [%s]\nExpected : %Lf\nGot : %Lf\n",
              tcase->title,
              tcase->input[i],
              tcase->target[i],
@@ -56,7 +62,11 @@ void startTesting(TestCase *tcase) {
     }
   }
   if (!failed) {
-    printf("> [%s] [Succesful]\n", tcase->title);
+    printf("> [%s] [", tcase->title);
+    printf(ANSI_COLOR_GREEN);
+    printf("Succesful");
+    printf(ANSI_COLOR_RESET);
+    printf("]\n");
   }
 }
 
@@ -66,8 +76,9 @@ int main() {
   addSubCase(case1, "1 + 0+12", 13);
   addSubCase(case1, "45/2 + 1/2", 23);
   addSubCase(case1, "10 + 3 * (13-3*(2^2))+1-1", 13);
+  addSubCase(case1, "((10) + ((5)*2)-9)", 11);
 
-  TestCase *case2 = createCase("Functions", 10);
+  TestCase *case2 = createCase("Functions and Constants", 10);
   addSubCase(case2, "sin(pi/2)", 1);
   addSubCase(case2, "sin(0.456)^2 + cos(0.456)^2", 1);
   addSubCase(case2, "log(10^9) - 2", 7);
