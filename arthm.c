@@ -307,7 +307,7 @@ char **infixToPostfix(char **in, int ilen, int *plen) {
   for (i = 0; i < ilen; i++) {
     strcpy(op, in[i]);
 
-    if (isdigit(op[0]) || op[0] == '-') {
+    if (isdigit(op[0]) || (strlen(op) > 2 && op[0] == '-')) {
       // A digit
       postf[p] = (char *)malloc(sizeof(char) * strlen(op));
       strcpy(postf[p++], op);
@@ -343,7 +343,6 @@ char **infixToPostfix(char **in, int ilen, int *plen) {
     postf[p][0] = tmp;
     postf[p++][1] = '\0';
   }
-
 
   free(s);
   *plen = p;
@@ -446,7 +445,7 @@ float evalPostfix(char **postf, int plen) {
   float op1, op2;
 
   for (i = 0; i < plen; i++) {
-    if (isdigit(postf[i][0]) || postf[i][0] == '-') {
+    if (isdigit(postf[i][0]) || (strlen(postf[i]) > 2 && postf[i][0] == '-')) {
       push(s, atof(postf[i]));
     } else {
       pop(s, &op2);

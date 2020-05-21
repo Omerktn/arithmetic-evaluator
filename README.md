@@ -1,8 +1,6 @@
 # arithmetic-evaluator
 An arithmetic expression evaluation program.
 
-### There is a very important bug in this program. Please do not use until it fixed.
-
 ![Screenshot](ss.png)
 <br/>
 
