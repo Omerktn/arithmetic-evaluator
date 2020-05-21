@@ -28,5 +28,5 @@ Constants:
 | pi | pi number |
 | m                              | (memory) former answer                        |
 <br/>
-    
 
+Floating point rounding error: 1 in a 10^9
