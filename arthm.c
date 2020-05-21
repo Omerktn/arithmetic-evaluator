@@ -14,14 +14,18 @@
 #define ANSI_COLOR_YELLOW "\x1b[01;33m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 
+#ifdef DEBUG
 #define _DEBUG 1
+#else
+#define _DEBUG 0
+#endif
 
 int evalStatus;
 char statusInfo[256];
-float formerAns = 0;
+long double formerAns = 0;
 
 typedef struct {
-  float item[MAX_STACK];
+  long double item[MAX_STACK];
   int top;
 } STACK;
 
@@ -45,7 +49,7 @@ int isFull(STACK *s) {
   }
 }
 
-int push(STACK *s, float x) {
+int push(STACK *s, long double x) {
   if (isFull(s)) {
     return 0;
   }
@@ -55,7 +59,7 @@ int push(STACK *s, float x) {
   return 1;
 }
 
-int pop(STACK *s, float *x) {
+int pop(STACK *s, long double *x) {
   if (isEmpty(s)) {
     return 0;
   }
@@ -65,7 +69,7 @@ int pop(STACK *s, float *x) {
   return 1;
 }
 
-int peek(STACK *s, float *x) {
+int peek(STACK *s, long double *x) {
   if (isEmpty(s)) {
     return 0;
   }
@@ -149,9 +153,9 @@ int getFunctionNum(char *fname) {
   return -1;
 }
 
-int getConstant(char *fname, float *constVal) {
+int getConstant(char *fname, long double *constVal) {
   char *constNames[3] = {"pi", "e", "m"};
-  float constVals[3] = {PI_CONST, EU_CONST, formerAns};
+  long double constVals[3] = {PI_CONST, EU_CONST, formerAns};
   int i = 0;
   // Check for constants
   while (i < 3) {
@@ -170,7 +174,7 @@ int getConstant(char *fname, float *constVal) {
 char **strToArray(char *in, int slen, int *ilen) {
   char **str = (char **)malloc(sizeof(char *) * slen * 2);
   char tmp[MAX_CHAR_IN];
-  float constVal;
+  long double constVal;
   int i = 0, arrIndex = 0, t = 0, funcNum,
       textNumState = 0; // textNumState 1:text 2:num 0:don't care
 
@@ -194,7 +198,7 @@ char **strToArray(char *in, int slen, int *ilen) {
 
         } else if (getConstant(tmp, &constVal)) {
           // Operand is a constant
-          sprintf(tmp, "%f", constVal);
+          sprintf(tmp, "%Lf", constVal);
           strcpy(str[arrIndex++], tmp);
 
         } else {
@@ -244,7 +248,7 @@ char **strToArray(char *in, int slen, int *ilen) {
 
         } else if (getConstant(tmp, &constVal)) {
           // Operand is a constant
-          sprintf(tmp, "%f", constVal);
+          sprintf(tmp, "%Lf", constVal);
           strcpy(str[arrIndex++], tmp);
 
         } else {
@@ -282,7 +286,7 @@ char **strToArray(char *in, int slen, int *ilen) {
 
     } else if (getConstant(tmp, &constVal)) {
       // Operand is a constant
-      sprintf(tmp, "%f", constVal);
+      sprintf(tmp, "%Lf", constVal);
       strcpy(str[arrIndex++], tmp);
 
     } else {
@@ -300,7 +304,7 @@ char **infixToPostfix(char **in, int ilen, int *plen) {
   char **postf = (char **)malloc(sizeof(char *) * ilen);
   STACK *s = (STACK *)malloc(sizeof(STACK));
   int i, p = 0;
-  float tmp;
+  long double tmp;
   char op[MAX_CHAR_IN];
   initStack(s);
 
@@ -349,8 +353,8 @@ char **infixToPostfix(char **in, int ilen, int *plen) {
   return postf;
 }
 
-float mathFunction(int func_num, float input) {
-  float ans;
+long double mathFunction(int func_num, long double input) {
+  long double ans;
 
   switch (func_num) {
   case 0:
@@ -406,8 +410,8 @@ float mathFunction(int func_num, float input) {
   return ans;
 }
 
-float perform(char op, float op1, float op2) {
-  float ans;
+long double perform(char op, long double op1, long double op2) {
+  long double ans;
 
   switch (op) {
   case '+':
@@ -438,11 +442,11 @@ float perform(char op, float op1, float op2) {
 }
 
 /* Evaluate the operations, with using stack */
-float evalPostfix(char **postf, int plen) {
+long double evalPostfix(char **postf, int plen) {
   STACK *s = (STACK *)malloc(sizeof(STACK));
   initStack(s);
   int i;
-  float op1, op2;
+  long double op1, op2;
 
   for (i = 0; i < plen; i++) {
     if (isdigit(postf[i][0]) || (strlen(postf[i]) > 2 && postf[i][0] == '-')) {
@@ -484,7 +488,7 @@ void preProcess(char *infix, char *clean) {
 /* Returns 1 if the expression has balanced pharentheses*/
 int validCheck(char *in, int ilen) {
   STACK *s = (STACK *)malloc(sizeof(STACK));
-  float ch;
+  long double ch;
   int i;
   initStack(s);
 
@@ -519,10 +523,10 @@ int validCheck(char *in, int ilen) {
 
 /* Evaluates and returns the answer. status will be set to -1 if any error
  * occurs */
-float evalExpression(char *exp) {
+long double evalExpression(char *exp) {
   char **postf, **infix;
   int ilen, plen;
-  float ans;
+  long double ans;
 
   // Preprocess
   char *clean = (char *)malloc(sizeof(char) * MAX_CHAR_IN);
@@ -565,7 +569,7 @@ float evalExpression(char *exp) {
 int main() {
   char in[MAX_CHAR_IN];
   int status;
-  float ans;
+  long double ans;
   printf(ANSI_COLOR_RESET);
   printf("[Arithmetic Expression Evaluation]\n<Type 'q' to quit.>\n");
 
@@ -587,7 +591,7 @@ int main() {
         printf("%d\n", (int)ans);
       } else {
 
-        printf("%f\n", ans);
+        printf("%Lf\n", ans);
       }
       formerAns = ans;
 
