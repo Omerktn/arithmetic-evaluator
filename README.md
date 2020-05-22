@@ -39,4 +39,4 @@ Run tests:
 	$ make test
 	$ ./test
 
-Floating point rounding error: 1 in a 10^9
+Floating point rounding error: 1 in 10^9
