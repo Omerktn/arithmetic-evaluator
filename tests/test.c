@@ -52,7 +52,7 @@ void startTesting(TestCase *tcase) {
       printf(ANSI_COLOR_RED);
       printf("Failed at ");
       printf(ANSI_COLOR_RESET);
-      printf("%s\nExpression : [%s]\nExpected : %Lf\nGot : %Lf\n",
+      printf("[%s]\nExpression : [%s]\nExpected : %Lf\nGot : %Lf\n",
              tcase->title,
              tcase->input[i],
              tcase->target[i],
@@ -76,6 +76,7 @@ int main() {
   addSubCase(case1, "45/2 + 1/2", 23);
   addSubCase(case1, "10 + 3 * (13-3*(2^2))+1-1", 13);
   addSubCase(case1, "((10) + ((5)*2)-9)", 11);
+  addSubCase(case1, "10+2*-1", 8);
 
   TestCase *case2 = createCase("Functions and Constants", 10);
   addSubCase(case2, "sin(pi/2)", 1);
@@ -83,7 +84,15 @@ int main() {
   addSubCase(case2, "log(10^9) - 2", 7);
   addSubCase(case2, "1 - ln(e*e*e*e) - 2", -5);
 
+  TestCase *case3 = createCase("Many operations", 10);
+  addSubCase(case3, "1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1+1-2-2-2-2-2-2-2-2-2", 0);
+  addSubCase(case3, "(((((((((((((((15+(9))))))))))))))))-1+1+1+1+1+1+1+1", 30);
+  addSubCase(case3, "10.1+20.2+30.3+40.4+50.5+60.6+7.70+8.80+9.90+10.10+11.11+12.12", 271.83);
+  addSubCase(case3, "123+5+31*41+23*-(12/5423)*1234-493+3823*35-2", 134646.196386);
+  addSubCase(case3, "123456.789+356543.66+34.2236+2423.44+6234.243/4", 484016.67335);
+
   startTesting(case1);
   startTesting(case2);
+  startTesting(case3);
   return 0;
 }
