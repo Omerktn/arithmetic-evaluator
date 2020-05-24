@@ -151,7 +151,7 @@ int getFunctionNum(char *fname) {
     }
     i++;
   }
-
+  printf("Can't determined:{%s}\n", fname);
   return -1;
 }
 
@@ -171,134 +171,91 @@ int getConstant(char *fname, long double *constVal) {
   return 0;
 }
 
-/* Takes a string, returns an array of strings,
- * e.g. "260+(4)" -> {"260","+","(","4",")"} */
-char **strToArray(char *in, int slen, int *ilen) {
-  char **str = (char **)malloc(sizeof(char *) * slen * 2);
-  char tmp[MAX_CHAR_IN];
-  long double constVal;
-  int i = 0, arrIndex = 0, t = 0, funcNum,
-      textNumState = 0; // textNumState 1:text 2:num 0:don't care
-
-  for (i = 0; i < slen; i++) {
-    if (isdigit(in[i]) || in[i] == '.') {
-
-      if (textNumState == 1) {
-        // Switched from text state
-        tmp[t++] = '\0';
-        str[arrIndex] = (char *)malloc(sizeof(char) * (t + 16));
-
-        funcNum = getFunctionNum(tmp);
-        if (funcNum >= 0) {
-          // Operand is a function
-          sprintf(tmp, "%d", funcNum);
-          strcpy(str[arrIndex++], tmp);
-
-          // Put special math function indicator
-          str[arrIndex] = (char *)malloc(sizeof(char) * (t + 16));
-          strcpy(str[arrIndex++], "|");
-
-        } else if (getConstant(tmp, &constVal)) {
-          // Operand is a constant
-          sprintf(tmp, "%Lf", constVal);
-          strcpy(str[arrIndex++], tmp);
-
-        } else {
-          // Neither constant nor function
-          evalStatus = 2;
-          sprintf(statusInfo, "Unknown function or constant: '%s'", tmp);
-        }
-
-        t = 0;
-        tmp[t++] = in[i];
-      } else {
-        // Number state keeps
-        tmp[t++] = in[i];
-      }
-      textNumState = 2;
-
-    } else if (isalpha(in[i])) {
-
-      if (textNumState == 2) {
-        // Switched from num state
-        tmp[t++] = '\0';
-        str[arrIndex] = (char *)malloc(sizeof(char) * (t + 16));
-        strcpy(str[arrIndex++], tmp);
-        t = 0;
-
-        tmp[t++] = in[i];
-      } else {
-        // Text state keeps
-        tmp[t++] = in[i];
-      }
-      textNumState = 1;
-    } else {
-
-      if (textNumState == 1) {
-        //  Transform text to function number
-        tmp[t++] = '\0';
-        str[arrIndex] = (char *)malloc(sizeof(char) * (t + 16));
-        funcNum = getFunctionNum(tmp);
-        if (funcNum >= 0) {
-          // operand is a function
-          sprintf(tmp, "%d", funcNum);
-          strcpy(str[arrIndex++], tmp);
-
-          // Put special math function indicator
-          str[arrIndex] = (char *)malloc(sizeof(char) * (t + 16));
-          strcpy(str[arrIndex++], "|");
-
-        } else if (getConstant(tmp, &constVal)) {
-          // Operand is a constant
-          sprintf(tmp, "%Lf", constVal);
-          strcpy(str[arrIndex++], tmp);
-
-        } else {
-          // Neither constant nor function
-          evalStatus = 2;
-          sprintf(statusInfo, "Unknown function or constant: '%s'", tmp);
-        }
-      } else if (t) {
-        tmp[t++] = '\0';
-        str[arrIndex] = (char *)malloc(sizeof(char) * (t + 16));
-        strcpy(str[arrIndex++], tmp);
-      }
-
-      str[arrIndex] = (char *)malloc(sizeof(char) * 16);
-      str[arrIndex][0] = in[i];
-      str[arrIndex][1] = '\0';
-      arrIndex++;
-      t = 0;
-      textNumState = 0;
+int isnumeric(char ch) {
+  if (isdigit(ch) || ch == '.') {
+    return 1;
+  }
+  return 0;
+}
+int isOperator(char ch) {
+  char oplist[10] = "+-*/^()";
+  char it;
+  int i;
+  for (i = 0, it = oplist[0]; it != '\0'; i++, it = oplist[i]) {
+    if (it == ch) {
+      return 1;
     }
   }
-  if (t) {
-    tmp[t] = '\0';
-    str[arrIndex] = (char *)malloc(sizeof(char) * (t + 1));
+  return 0;
+}
 
-    funcNum = getFunctionNum(tmp);
-    if (funcNum >= 0) {
-      // operand is a function
-      sprintf(tmp, "%d", funcNum);
-      strcpy(str[arrIndex++], tmp);
+/* Takes a string, returns an array of strings,
+ * e.g. "260+(4)" -> {"260","+","(","4",")"} */
+char ** stringToArray(char *in, int slen, int *ilen) {
+  enum state { Text, Numeric };
+  char ** str = (char**)malloc(sizeof(char*) * slen * 2);
+  char tmp[MAX_CHAR_IN];
+  int i=0, k, arrIndex=0, funcNum;
+  long double constVal;
 
-      // Put special math function indicator
-      str[arrIndex] = (char *)malloc(sizeof(char) * (t + 16));
-      strcpy(str[arrIndex++], "|");
+  while (i < slen) {
+    strcpy(tmp, "");
+    k = 0;
 
-    } else if (getConstant(tmp, &constVal)) {
-      // Operand is a constant
-      sprintf(tmp, "%Lf", constVal);
-      strcpy(str[arrIndex++], tmp);
+    if (isnumeric(in[i])) {
+      // Integers and floating points
+      while(isnumeric(in[i])) {
+        tmp[k++] = in[i++];
+      }
 
-    } else {
-      // Neither constant nor function
-      strcpy(str[arrIndex++], tmp);
+    } else if (isalpha(in[i])) {
+      // Alpha chars e.g. sin, pi, m
+      while(isalpha(in[i])) {
+        tmp[k++] = in[i++];
+      }
+      tmp[k++] = '\0';
+
+      funcNum = getFunctionNum(tmp);
+      if (funcNum >= 0) {
+        // Valid function detected
+        sprintf(tmp, "%d", funcNum);
+        str[arrIndex++] = strdup(tmp);
+        str[arrIndex++] = strdup("|");
+        continue;
+      } else if (getConstant(tmp, &constVal)) {
+        // Valid constant detected
+        sprintf(tmp, "%Lf", constVal);
+        str[arrIndex++] = strdup(tmp);
+        continue;
+      } else {
+        // Neither constant nor function
+        evalStatus = 2;
+        sprintf(statusInfo, "Unknown function or constant: '%s'", tmp);
+        break;
+      }
+
+    } else if (isOperator(in[i])) {
+      // Operator chars
+      if (i > 0 && isContain(in[i], "+-") && isContain(in[i-1], "*/")) {
+        str[arrIndex++] = strdup("-1");
+        str[arrIndex++] = strdup("*");
+        i++;
+        continue;
+      }
+      tmp[k++] = in[i++];
+
+    }else {
+      evalStatus = 2;
+      sprintf(statusInfo, "Unknown input character: '%c'", in[i]);
+      break;
     }
+
+    tmp[k] = '\0';
+    str[arrIndex++] = strdup(tmp);
   }
 
   *ilen = arrIndex;
-  // str = (char **)realloc(str, sizeof(char *) * arrIndex);
+  str = (char**) realloc (str, sizeof(char*)*arrIndex+16);
   return str;
 }
 
@@ -478,7 +435,8 @@ void preProcess(char *infix, char *clean) {
     if (i > 0 && infix[i] == '-' && (infix[i - 1] == '(')) {
       clean[c++] = '0';
     }
-    // Aceppts all chars but space
+
+    // Acepts all chars but space
     if (infix[i] != ' ') {
       clean[c++] = infix[i];
     }
@@ -539,7 +497,7 @@ long double evalExpression(char *exp) {
     return 0;
   }
 
-  infix = strToArray(exp, strlen(exp), &ilen);
+  infix = stringToArray(exp, strlen(exp), &ilen);
   /* DEBUG */
   if (_DEBUG) {
     int k;
