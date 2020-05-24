@@ -4,3 +4,4 @@ test
 tests/test.o
 stoa
 strtoarray.c
+.*
