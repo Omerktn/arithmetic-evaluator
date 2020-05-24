@@ -63,7 +63,7 @@ int push(STACK *s, long double x) {
 
 int pop(STACK *s, long double *x) {
   if (isEmpty(s)) {
-    return 0;
+    return 0;    
   }
 
   s->top--;
@@ -151,7 +151,7 @@ int getFunctionNum(char *fname) {
     }
     i++;
   }
-  printf("Can't determined:{%s}\n", fname);
+
   return -1;
 }
 
@@ -177,6 +177,7 @@ int isnumeric(char ch) {
   }
   return 0;
 }
+
 int isOperator(char ch) {
   char oplist[10] = "+-*/^()";
   char it;
@@ -237,7 +238,11 @@ char ** stringToArray(char *in, int slen, int *ilen) {
     } else if (isOperator(in[i])) {
       // Operator chars
       if (i > 0 && isContain(in[i], "+-") && isContain(in[i-1], "*/")) {
-        str[arrIndex++] = strdup("-1");
+        str[arrIndex++] = strdup("(");
+        str[arrIndex++] = strdup("0");
+        str[arrIndex++] = strdup("-");
+        str[arrIndex++] = strdup("1");
+        str[arrIndex++] = strdup(")");
         str[arrIndex++] = strdup("*");
         i++;
         continue;
@@ -259,56 +264,56 @@ char ** stringToArray(char *in, int slen, int *ilen) {
   return str;
 }
 
+char* newStringFromChar(char ch) {
+  char* str = (char*) malloc (sizeof(char)+15);
+  str[0] = ch;
+  str[1] = '\0';
+  return str;
+}
+
 char **infixToPostfix(char **in, int ilen, int *plen) {
   char **postf = (char **)malloc(sizeof(char *) * ilen);
   STACK *s = (STACK *)malloc(sizeof(STACK));
-  int i, p = 0;
+  int i, idxPost = 0;
   long double tmp;
   char op[MAX_CHAR_IN];
   initStack(s);
 
-  for (i = 0; i < ilen; i++) {
+  for(i=0; i < ilen; i++) {
     strcpy(op, in[i]);
 
-    if (isdigit(op[0]) || (strlen(op) > 2 && op[0] == '-')) {
-      // A digit
-      postf[p] = (char *)malloc(sizeof(char) * strlen(op));
-      strcpy(postf[p++], op);
-
+    if (isnumeric(op[0]) || (strlen(op) > 2 && op[0] == '-')) {
+      // Numeric element
+      postf[idxPost++] = strdup(op);
     } else if (!strcmp(op, ")")) {
       peek(s, &tmp);
       while (!isEmpty(s) && (char)tmp != '(') {
         pop(s, &tmp);
-        postf[p] = (char *)malloc(sizeof(char) * 16);
-        postf[p][0] = tmp;
-        postf[p++][1] = '\0';
+        postf[idxPost++] = newStringFromChar(tmp);
         peek(s, &tmp);
       }
       pop(s, &tmp);
     } else if (!isEmpty(s)) {
       peek(s, &tmp);
-      while (isPrior((char)tmp, op[0]) && !isEmpty(s) && (char)tmp != '(') {
+      while (isPrior((char)tmp, op[0]) && !isEmpty(s)
+             && (char)tmp != '(') {
         pop(s, &tmp);
-        postf[p] = (char *)malloc(sizeof(char) * 16);
-        postf[p][0] = tmp;
-        postf[p++][1] = '\0';
+        postf[idxPost++] = newStringFromChar(tmp);
         peek(s, &tmp);
       }
       push(s, (int)op[0]);
     } else {
       push(s, (int)op[0]);
     }
-  }
+  } // End loop
 
   while (!isEmpty(s)) {
     pop(s, &tmp);
-    postf[p] = (char *)malloc(sizeof(char) * 16);
-    postf[p][0] = tmp;
-    postf[p++][1] = '\0';
+    postf[idxPost++] = newStringFromChar(tmp);
   }
 
   free(s);
-  *plen = p;
+  *plen = idxPost;
   return postf;
 }
 
