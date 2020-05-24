@@ -1,1 +1,0 @@
-omer@omer-ubuntu.2304:1590308790
