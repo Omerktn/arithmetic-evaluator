@@ -33,9 +33,9 @@ typedef struct {
 
 // Stack functions
 
-void initStack(STACK *s) { s->top = 0; }
+static void initStack(STACK *s) { s->top = 0; }
 
-int isEmpty(STACK *s) {
+static int isEmpty(STACK *s) {
   if (!s->top) {
     return 1;
   } else {
@@ -43,7 +43,7 @@ int isEmpty(STACK *s) {
   }
 }
 
-int isFull(STACK *s) {
+static int isFull(STACK *s) {
   if (s->top == MAX_STACK) {
     return 1;
   } else {
@@ -51,7 +51,7 @@ int isFull(STACK *s) {
   }
 }
 
-int push(STACK *s, long double x) {
+static int push(STACK *s, long double x) {
   if (isFull(s)) {
     return 0;
   }
@@ -61,7 +61,7 @@ int push(STACK *s, long double x) {
   return 1;
 }
 
-int pop(STACK *s, long double *x) {
+static int pop(STACK *s, long double *x) {
   if (isEmpty(s)) {
     return 0;    
   }
@@ -71,7 +71,7 @@ int pop(STACK *s, long double *x) {
   return 1;
 }
 
-int peek(STACK *s, long double *x) {
+static int peek(STACK *s, long double *x) {
   if (isEmpty(s)) {
     return 0;
   }
@@ -79,7 +79,7 @@ int peek(STACK *s, long double *x) {
   return 1;
 }
 
-void printStack(STACK *s) {
+static void printStack(STACK *s) {
   int i;
   for (i = 0; i < s->top; i++) {
     printf("[%c-%d], ", (int)s->item[i], (int)s->item[i]);
@@ -90,7 +90,7 @@ void printStack(STACK *s) {
 // Arithmetic eval functions
 
 /* Return 1 if ch1 has higher priority */
-int isPrior(char ch1, char ch2) {
+static int isPrior(char ch1, char ch2) {
   char chList[7] = {'(', '|', '^', '*', '/', '+', '-'};
   char chPrio[7] = {5, 4, 3, 2, 2, 1, 1};
   short prv1 = -1, prv2 = -1;
@@ -118,7 +118,7 @@ int isPrior(char ch1, char ch2) {
 }
 
 /* Return 1 if the string contains the char  */
-int isContain(char ch, char *in) {
+static int isContain(char ch, char *in) {
   int i = 0, ilen = strlen(in);
   while (i < ilen) {
     if (in[i] == ch) {
@@ -130,7 +130,7 @@ int isContain(char ch, char *in) {
 }
 
 /* Free all the elements of string array */
-void deleteExpression(char **strlist, int len) {
+static void deleteExpression(char **strlist, int len) {
   int i;
   for (i = 0; i < len; i++) {
     free(strlist[i]);
@@ -139,7 +139,7 @@ void deleteExpression(char **strlist, int len) {
 }
 
 /* Return math function number, returns -1 if no function name matched */
-int getFunctionNum(char *fname) {
+static int getFunctionNum(char *fname) {
   char *funcNames[13] = {"sin",    "cos",    "tan",    "cot",
                         "arctan", "arcsin", "arccos", "sqrt",
                          "floor", "round", "ceil", "log", "ln"};
@@ -155,7 +155,7 @@ int getFunctionNum(char *fname) {
   return -1;
 }
 
-int getConstant(char *fname, long double *constVal) {
+static int getConstant(char *fname, long double *constVal) {
   char *constNames[3] = {"pi", "e", "m"};
   long double constVals[3] = {PI_CONST, EU_CONST, formerAns};
   int i = 0;
@@ -171,14 +171,14 @@ int getConstant(char *fname, long double *constVal) {
   return 0;
 }
 
-int isnumeric(char ch) {
+static int isnumeric(char ch) {
   if (isdigit(ch) || ch == '.') {
     return 1;
   }
   return 0;
 }
 
-int isOperator(char ch) {
+static int isOperator(char ch) {
   char oplist[10] = "+-*/^()";
   char it;
   int i;
@@ -192,7 +192,7 @@ int isOperator(char ch) {
 
 /* Takes a string, returns an array of strings,
  * e.g. "260+(4)" -> {"260","+","(","4",")"} */
-char ** stringToArray(char *in, int slen, int *ilen) {
+static char **stringToArray(char *in, int slen, int *ilen) {
   enum state { Text, Numeric };
   char ** str = (char**)malloc(sizeof(char*) * slen * 2);
   char tmp[MAX_CHAR_IN];
@@ -238,6 +238,7 @@ char ** stringToArray(char *in, int slen, int *ilen) {
     } else if (isOperator(in[i])) {
       // Operator chars
       if (i > 0 && isContain(in[i], "+-") && isContain(in[i-1], "*/")) {
+
         str[arrIndex++] = strdup("(");
         str[arrIndex++] = strdup("0");
         str[arrIndex++] = strdup("-");
@@ -264,14 +265,14 @@ char ** stringToArray(char *in, int slen, int *ilen) {
   return str;
 }
 
-char* newStringFromChar(char ch) {
+static char *newStringFromChar(char ch) {
   char* str = (char*) malloc (sizeof(char)+15);
   str[0] = ch;
   str[1] = '\0';
   return str;
 }
 
-char **infixToPostfix(char **in, int ilen, int *plen) {
+static char **infixToPostfix(char **in, int ilen, int *plen) {
   char **postf = (char **)malloc(sizeof(char *) * ilen);
   STACK *s = (STACK *)malloc(sizeof(STACK));
   int i, idxPost = 0;
@@ -317,7 +318,7 @@ char **infixToPostfix(char **in, int ilen, int *plen) {
   return postf;
 }
 
-long double mathFunction(int func_num, long double input) {
+static long double mathFunction(int func_num, long double input) {
   long double ans;
 
   switch (func_num) {
@@ -374,7 +375,7 @@ long double mathFunction(int func_num, long double input) {
   return ans;
 }
 
-long double perform(char op, long double op1, long double op2) {
+static long double perform(char op, long double op1, long double op2) {
   long double ans;
 
   switch (op) {
@@ -406,7 +407,7 @@ long double perform(char op, long double op1, long double op2) {
 }
 
 /* Evaluate the operations, with using stack */
-long double evalPostfix(char **postf, int plen) {
+static long double evalPostfix(char **postf, int plen) {
   STACK *s = (STACK *)malloc(sizeof(STACK));
   initStack(s);
   int i;
@@ -427,7 +428,7 @@ long double evalPostfix(char **postf, int plen) {
 }
 
 /* Handles some minus operator cases, e.g."-4+1" */
-void preProcess(char *infix, char *clean) {
+static void preProcess(char *infix, char *clean) {
   int i = 0, c = 0;
 
   // Put zero to beginning, if starts with "-"
@@ -451,7 +452,7 @@ void preProcess(char *infix, char *clean) {
 }
 
 /* Returns 1 if the expression has balanced pharentheses*/
-int validCheck(char *in, int ilen) {
+static int validCheck(char *in, int ilen) {
   STACK *s = (STACK *)malloc(sizeof(STACK));
   long double ch;
   int i;
