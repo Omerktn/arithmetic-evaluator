@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 #include "arthm.h"
 
@@ -539,17 +541,17 @@ int main() {
   long double ans;
   printf(ANSI_COLOR_RESET);
   printf("[Arithmetic Expression Evaluation]\n<Type 'q' to quit.>\n");
-
   do {
     evalStatus = 0;
     printf(ANSI_COLOR_RESET);
-    printf("E:");
-    if(!fgets(in, MAX_CHAR_IN, stdin)) {
+
+    char *in = readline("E:"); // allocates memory
+    if(strlen(in) < 1) {
+      // consider continueing loop instead of exiting
       exit(5);
     }
-    in[strlen(in) - 1] = '\0';
-
     ans = evalExpression(in);
+    free(in);
 
     if (!evalStatus) {
       printf("Ans:>");
