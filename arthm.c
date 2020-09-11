@@ -25,10 +25,11 @@
 #endif
 
 int evalStatus;
-char statusInfo[256];
+char statusInfo[4256];
 long double formerAns = 0;
 
-typedef struct {
+typedef struct
+{
   long double item[MAX_STACK];
   int top;
 } STACK;
@@ -37,24 +38,34 @@ typedef struct {
 
 static void initStack(STACK *s) { s->top = 0; }
 
-static int isEmpty(STACK *s) {
-  if (!s->top) {
+static int isEmpty(STACK *s)
+{
+  if (!s->top)
+  {
     return 1;
-  } else {
+  }
+  else
+  {
     return 0;
   }
 }
 
-static int isFull(STACK *s) {
-  if (s->top == MAX_STACK) {
+static int isFull(STACK *s)
+{
+  if (s->top == MAX_STACK)
+  {
     return 1;
-  } else {
+  }
+  else
+  {
     return 0;
   }
 }
 
-static int push(STACK *s, long double x) {
-  if (isFull(s)) {
+static int push(STACK *s, long double x)
+{
+  if (isFull(s))
+  {
     return 0;
   }
 
@@ -63,9 +74,11 @@ static int push(STACK *s, long double x) {
   return 1;
 }
 
-static int pop(STACK *s, long double *x) {
-  if (isEmpty(s)) {
-    return 0;    
+static int pop(STACK *s, long double *x)
+{
+  if (isEmpty(s))
+  {
+    return 0;
   }
 
   s->top--;
@@ -73,17 +86,21 @@ static int pop(STACK *s, long double *x) {
   return 1;
 }
 
-static int peek(STACK *s, long double *x) {
-  if (isEmpty(s)) {
+static int peek(STACK *s, long double *x)
+{
+  if (isEmpty(s))
+  {
     return 0;
   }
   *x = s->item[s->top - 1];
   return 1;
 }
 
-static void printStack(STACK *s) {
+static void printStack(STACK *s)
+{
   int i;
-  for (i = 0; i < s->top; i++) {
+  for (i = 0; i < s->top; i++)
+  {
     printf("[%c-%d], ", (int)s->item[i], (int)s->item[i]);
   }
   printf("\n");
@@ -92,26 +109,33 @@ static void printStack(STACK *s) {
 // Arithmetic eval functions
 
 /* Return 1 if ch1 has higher priority */
-static int isPrior(char ch1, char ch2) {
+static int isPrior(char ch1, char ch2)
+{
   char chList[7] = {'(', '|', '^', '*', '/', '+', '-'};
   char chPrio[7] = {5, 4, 3, 2, 2, 1, 1};
   short prv1 = -1, prv2 = -1;
   int i = 0;
 
-  while (i < 7) {
-    if (ch1 == chList[i]) {
+  while (i < 7)
+  {
+    if (ch1 == chList[i])
+    {
       prv1 = chPrio[i];
     }
-    if (ch2 == chList[i]) {
+    if (ch2 == chList[i])
+    {
       prv2 = chPrio[i];
     }
     i++;
   }
 
   printf(ANSI_COLOR_RED);
-  if (prv1 == -1) {
+  if (prv1 == -1)
+  {
     printf("Unrecognized symbol '%c'\n", ch1);
-  } else if (prv2 == -1) {
+  }
+  else if (prv2 == -1)
+  {
     printf("Unrecognized symbol '%c'\n", ch2);
   }
   printf(ANSI_COLOR_RESET);
@@ -120,10 +144,13 @@ static int isPrior(char ch1, char ch2) {
 }
 
 /* Return 1 if the string contains the char  */
-static int isContain(char ch, char *in) {
+static int isContain(char ch, char *in)
+{
   int i = 0, ilen = strlen(in);
-  while (i < ilen) {
-    if (in[i] == ch) {
+  while (i < ilen)
+  {
+    if (in[i] == ch)
+    {
       return 1;
     }
     i++;
@@ -132,23 +159,28 @@ static int isContain(char ch, char *in) {
 }
 
 /* Free all the elements of string array */
-static void deleteExpression(char **strlist, int len) {
+static void deleteExpression(char **strlist, int len)
+{
   int i;
-  for (i = 0; i < len; i++) {
+  for (i = 0; i < len; i++)
+  {
     free(strlist[i]);
   }
   free(strlist);
 }
 
 /* Return math function number, returns -1 if no function name matched */
-static int getFunctionNum(char *fname) {
-  char *funcNames[13] = {"sin",    "cos",    "tan",    "cot",
-                        "arctan", "arcsin", "arccos", "sqrt",
+static int getFunctionNum(char *fname)
+{
+  char *funcNames[13] = {"sin", "cos", "tan", "cot",
+                         "arctan", "arcsin", "arccos", "sqrt",
                          "floor", "round", "ceil", "log", "ln"};
   int i = 0;
   // Check for functions
-  while (i < 13) {
-    if (!strcasecmp(fname, funcNames[i])) {
+  while (i < 13)
+  {
+    if (!strcasecmp(fname, funcNames[i]))
+    {
       return i;
     }
     i++;
@@ -157,13 +189,16 @@ static int getFunctionNum(char *fname) {
   return -1;
 }
 
-static int getConstant(char *fname, long double *constVal) {
+static int getConstant(char *fname, long double *constVal)
+{
   char *constNames[3] = {"pi", "e", "m"};
   long double constVals[3] = {PI_CONST, EU_CONST, formerAns};
   int i = 0;
   // Check for constants
-  while (i < 3) {
-    if (!strcasecmp(fname, constNames[i])) {
+  while (i < 3)
+  {
+    if (!strcasecmp(fname, constNames[i]))
+    {
       *constVal = constVals[i];
       return 1;
     }
@@ -173,19 +208,24 @@ static int getConstant(char *fname, long double *constVal) {
   return 0;
 }
 
-static int isnumeric(char ch) {
-  if (isdigit(ch) || ch == '.') {
+static int isnumeric(char ch)
+{
+  if (isdigit(ch) || ch == '.')
+  {
     return 1;
   }
   return 0;
 }
 
-static int isOperator(char ch) {
+static int isOperator(char ch)
+{
   char oplist[10] = "+-*/^()";
   char it;
   int i;
-  for (i = 0, it = oplist[0]; it != '\0'; i++, it = oplist[i]) {
-    if (it == ch) {
+  for (i = 0, it = oplist[0]; it != '\0'; i++, it = oplist[i])
+  {
+    if (it == ch)
+    {
       return 1;
     }
   }
@@ -194,52 +234,69 @@ static int isOperator(char ch) {
 
 /* Takes a string, returns an array of strings,
  * e.g. "260+(4)" -> {"260","+","(","4",")"} */
-static char **stringToArray(char *in, int slen, int *ilen) {
-  enum state { Text, Numeric };
-  char ** str = (char**)malloc(sizeof(char*) * slen * 2);
+static char **stringToArray(char *in, int slen, int *ilen)
+{
+  enum state
+  {
+    Text,
+    Numeric
+  };
+  char **str = (char **)malloc(sizeof(char *) * slen * 2);
   char tmp[MAX_CHAR_IN];
-  int i=0, k, arrIndex=0, funcNum;
+  int i = 0, k, arrIndex = 0, funcNum;
   long double constVal;
 
-  while (i < slen) {
+  while (i < slen)
+  {
     strcpy(tmp, "");
     k = 0;
 
-    if (isnumeric(in[i])) {
+    if (isnumeric(in[i]))
+    {
       // Integers and floating points
-      while(isnumeric(in[i])) {
+      while (isnumeric(in[i]))
+      {
         tmp[k++] = in[i++];
       }
-
-    } else if (isalpha(in[i])) {
+    }
+    else if (isalpha(in[i]))
+    {
       // Alpha chars e.g. sin, pi, m
-      while(isalpha(in[i])) {
+      while (isalpha(in[i]))
+      {
         tmp[k++] = in[i++];
       }
       tmp[k++] = '\0';
 
       funcNum = getFunctionNum(tmp);
-      if (funcNum >= 0) {
+      if (funcNum >= 0)
+      {
         // Valid function detected
         sprintf(tmp, "%d", funcNum);
         str[arrIndex++] = strdup(tmp);
         str[arrIndex++] = strdup("|");
         continue;
-      } else if (getConstant(tmp, &constVal)) {
+      }
+      else if (getConstant(tmp, &constVal))
+      {
         // Valid constant detected
         sprintf(tmp, "%Lf", constVal);
         str[arrIndex++] = strdup(tmp);
         continue;
-      } else {
+      }
+      else
+      {
         // Neither constant nor function
         evalStatus = 2;
         sprintf(statusInfo, "Unknown function or constant: '%s'", tmp);
         break;
       }
-
-    } else if (isOperator(in[i])) {
+    }
+    else if (isOperator(in[i]))
+    {
       // Operator chars
-      if (i > 0 && isContain(in[i], "+-") && isContain(in[i-1], "*/")) {
+      if (i > 0 && isContain(in[i], "+-") && isContain(in[i - 1], "*/"))
+      {
 
         str[arrIndex++] = strdup("(");
         str[arrIndex++] = strdup("0");
@@ -251,8 +308,9 @@ static char **stringToArray(char *in, int slen, int *ilen) {
         continue;
       }
       tmp[k++] = in[i++];
-
-    }else {
+    }
+    else
+    {
       evalStatus = 2;
       sprintf(statusInfo, "Unknown input character: '%c'", in[i]);
       break;
@@ -263,18 +321,20 @@ static char **stringToArray(char *in, int slen, int *ilen) {
   }
 
   *ilen = arrIndex;
-  str = (char**) realloc (str, sizeof(char*)*arrIndex+16);
+  str = (char **)realloc(str, sizeof(char *) * arrIndex + 16);
   return str;
 }
 
-static char *newStringFromChar(char ch) {
-  char* str = (char*) malloc (sizeof(char)+15);
+static char *newStringFromChar(char ch)
+{
+  char *str = (char *)malloc(sizeof(char) + 15);
   str[0] = ch;
   str[1] = '\0';
   return str;
 }
 
-static char **infixToPostfix(char **in, int ilen, int *plen) {
+static char **infixToPostfix(char **in, int ilen, int *plen)
+{
   char **postf = (char **)malloc(sizeof(char *) * ilen);
   STACK *s = (STACK *)malloc(sizeof(STACK));
   int i, idxPost = 0;
@@ -282,35 +342,45 @@ static char **infixToPostfix(char **in, int ilen, int *plen) {
   char op[MAX_CHAR_IN];
   initStack(s);
 
-  for(i=0; i < ilen; i++) {
+  for (i = 0; i < ilen; i++)
+  {
     strcpy(op, in[i]);
 
-    if (isnumeric(op[0]) || (strlen(op) > 2 && op[0] == '-')) {
+    if (isnumeric(op[0]) || (strlen(op) > 2 && op[0] == '-'))
+    {
       // Numeric element
       postf[idxPost++] = strdup(op);
-    } else if (!strcmp(op, ")")) {
+    }
+    else if (!strcmp(op, ")"))
+    {
       peek(s, &tmp);
-      while (!isEmpty(s) && (char)tmp != '(') {
+      while (!isEmpty(s) && (char)tmp != '(')
+      {
         pop(s, &tmp);
         postf[idxPost++] = newStringFromChar(tmp);
         peek(s, &tmp);
       }
       pop(s, &tmp);
-    } else if (!isEmpty(s)) {
+    }
+    else if (!isEmpty(s))
+    {
       peek(s, &tmp);
-      while (isPrior((char)tmp, op[0]) && !isEmpty(s)
-             && (char)tmp != '(') {
+      while (isPrior((char)tmp, op[0]) && !isEmpty(s) && (char)tmp != '(')
+      {
         pop(s, &tmp);
         postf[idxPost++] = newStringFromChar(tmp);
         peek(s, &tmp);
       }
       push(s, (int)op[0]);
-    } else {
+    }
+    else
+    {
       push(s, (int)op[0]);
     }
   } // End loop
 
-  while (!isEmpty(s)) {
+  while (!isEmpty(s))
+  {
     pop(s, &tmp);
     postf[idxPost++] = newStringFromChar(tmp);
   }
@@ -320,10 +390,12 @@ static char **infixToPostfix(char **in, int ilen, int *plen) {
   return postf;
 }
 
-static long double mathFunction(int func_num, long double input) {
+static long double mathFunction(int func_num, long double input)
+{
   long double ans;
 
-  switch (func_num) {
+  switch (func_num)
+  {
   case 0:
     // 0:Sin 1:Cos 2:Tan 3:Cos
     ans = sin(input);
@@ -377,10 +449,12 @@ static long double mathFunction(int func_num, long double input) {
   return ans;
 }
 
-static long double perform(char op, long double op1, long double op2) {
+static long double perform(char op, long double op1, long double op2)
+{
   long double ans;
 
-  switch (op) {
+  switch (op)
+  {
   case '+':
     ans = op1 + op2;
     break;
@@ -409,16 +483,21 @@ static long double perform(char op, long double op1, long double op2) {
 }
 
 /* Evaluate the operations, with using stack */
-static long double evalPostfix(char **postf, int plen) {
+static long double evalPostfix(char **postf, int plen)
+{
   STACK *s = (STACK *)malloc(sizeof(STACK));
   initStack(s);
   int i;
   long double op1, op2;
 
-  for (i = 0; i < plen; i++) {
-    if (isdigit(postf[i][0]) || (strlen(postf[i]) > 2 && postf[i][0] == '-')) {
+  for (i = 0; i < plen; i++)
+  {
+    if (isdigit(postf[i][0]) || (strlen(postf[i]) > 2 && postf[i][0] == '-'))
+    {
       push(s, atof(postf[i]));
-    } else {
+    }
+    else
+    {
       pop(s, &op2);
       pop(s, &op1);
       push(s, perform(postf[i][0], op1, op2));
@@ -430,22 +509,27 @@ static long double evalPostfix(char **postf, int plen) {
 }
 
 /* Handles some minus operator cases, e.g."-4+1" */
-static void preProcess(char *infix, char *clean) {
+static void preProcess(char *infix, char *clean)
+{
   int i = 0, c = 0;
 
   // Put zero to beginning, if starts with "-"
-  if (infix[0] == '-') {
+  if (infix[0] == '-')
+  {
     clean[c++] = '0';
   }
 
-  while (infix[i] != '\0') {
+  while (infix[i] != '\0')
+  {
     // Put zero before negative leftsided numbers
-    if (i > 0 && infix[i] == '-' && (infix[i - 1] == '(')) {
+    if (i > 0 && infix[i] == '-' && (infix[i - 1] == '('))
+    {
       clean[c++] = '0';
     }
 
     // Acepts all chars but space
-    if (infix[i] != ' ') {
+    if (infix[i] != ' ')
+    {
       clean[c++] = infix[i];
     }
     i++;
@@ -454,20 +538,29 @@ static void preProcess(char *infix, char *clean) {
 }
 
 /* Returns 1 if the expression has balanced pharentheses*/
-static int validCheck(char *in, int ilen) {
+static int validCheck(char *in, int ilen)
+{
   STACK *s = (STACK *)malloc(sizeof(STACK));
   long double ch;
   int i;
   initStack(s);
 
-  for (i = 0; i < ilen; i++) {
-    if (in[i] == '(') {
+  for (i = 0; i < ilen; i++)
+  {
+    if (in[i] == '(')
+    {
       push(s, in[i]);
-    } else {
-      if (in[i] == ')') {
-        if (!isEmpty(s)) {
+    }
+    else
+    {
+      if (in[i] == ')')
+      {
+        if (!isEmpty(s))
+        {
           pop(s, &ch);
-        } else {
+        }
+        else
+        {
           free(s);
 
           evalStatus = 1;
@@ -477,7 +570,8 @@ static int validCheck(char *in, int ilen) {
       }
     }
   }
-  if (!isEmpty(s)) {
+  if (!isEmpty(s))
+  {
     free(s);
 
     evalStatus = 1;
@@ -491,7 +585,8 @@ static int validCheck(char *in, int ilen) {
 
 /* Evaluates and returns the answer. status will be set to -1 if any error
  * occurs */
-long double evalExpression(char *exp) {
+long double evalExpression(char *exp)
+{
   char **postf, **infix;
   int ilen, plen;
   long double ans;
@@ -501,16 +596,19 @@ long double evalExpression(char *exp) {
   preProcess(exp, clean);
   strcpy(exp, clean);
   // Validation check
-  if (!validCheck(exp, strlen(exp))) {
+  if (!validCheck(exp, strlen(exp)))
+  {
     return 0;
   }
 
   infix = stringToArray(exp, strlen(exp), &ilen);
   /* DEBUG */
-  if (_DEBUG) {
+  if (_DEBUG)
+  {
     int k;
     printf("Infix:: ");
-    for (k = 0; k < ilen; k++) {
+    for (k = 0; k < ilen; k++)
+    {
       printf("[%s] ", infix[k]);
     }
     printf("\n");
@@ -518,10 +616,12 @@ long double evalExpression(char *exp) {
 
   postf = infixToPostfix(infix, ilen, &plen);
   /* DEBUG */
-  if (_DEBUG) {
+  if (_DEBUG)
+  {
     int k;
     printf("Postfix:: ");
-    for (k = 0; k < plen; k++) {
+    for (k = 0; k < plen; k++)
+    {
       printf("[%s] ", postf[k]);
     }
     printf("\n");
@@ -535,37 +635,45 @@ long double evalExpression(char *exp) {
 }
 
 #ifdef STANDALONE
-int main() {
+int main()
+{
   char in[MAX_CHAR_IN];
   int status;
   long double ans;
   printf(ANSI_COLOR_RESET);
   printf("[Arithmetic Expression Evaluation]\n<Type 'q' to quit.>\n");
-  do {
+  do
+  {
     evalStatus = 0;
     printf(ANSI_COLOR_RESET);
 
     char *in = readline("E:"); // allocates memory
-    if(strlen(in) < 1) {
+    if (strlen(in) < 1)
+    {
       // consider continueing loop instead of exiting
       exit(5);
     }
     ans = evalExpression(in);
     free(in);
 
-    if (!evalStatus) {
+    if (!evalStatus)
+    {
       printf("Ans:>");
       printf(ANSI_COLOR_YELLOW);
 
-      if (floor((double)ans) == (ans)) {
+      if (floor((double)ans) == (ans))
+      {
         printf("%ld\n", (long signed int)ans);
-      } else {
+      }
+      else
+      {
 
         printf("%Lf\n", ans);
       }
       formerAns = ans;
-
-    } else {
+    }
+    else
+    {
       printf(ANSI_COLOR_RED);
       printf("%s\n", statusInfo);
       printf(ANSI_COLOR_RESET);

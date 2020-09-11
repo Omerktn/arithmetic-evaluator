@@ -2,7 +2,7 @@
 #define ARTHM_H
 
 extern int evalStatus;
-extern char statusInfo[256];
+extern char statusInfo[4256];
 extern long double formerAns;
 
 long double evalExpression(char *exp);
