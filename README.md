@@ -32,6 +32,8 @@ Constants:
 
 Run standalone:
 
+	$ sudo apt install libreadline-dev
+
 	$ make
 	$ ./eval
 Run tests:
